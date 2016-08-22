@@ -24,6 +24,17 @@ object Main {
       (ip, if (size != null) size.toLong else 0)
     })
 
+    val map: Array[String] = executeComputations(cache)
+    map.foreach(println)
+
+    FileUtil.fullyDelete(new File(PARTS_FILE_NAME_PREFIX))
+    FileUtil.fullyDelete(new File(RESULT_FILE_NAME))
+
+    sc.parallelize(map).saveAsTextFile(PARTS_FILE_NAME_PREFIX)
+    merge(PARTS_FILE_NAME_PREFIX, RESULT_FILE_NAME)
+  }
+
+  def executeComputations(cache: RDD[(String, Long)]): Array[String] = {
     val key: RDD[(String, (Float, Int))] = cache.aggregateByKey((0.0f, 0))(
       (acc, size) => (acc._1 + size, acc._2 + 1),
       (acc1, acc2) => (acc1._1 + acc2._1, acc1._2 + acc2._2)
@@ -40,13 +51,7 @@ object Main {
         case (ipName, (averageValue, totalAmountOfBytes)) =>
           ipName + ", " + averageValue + ", " + totalAmountOfBytes
       }
-    map.foreach(println)
-
-    FileUtil.fullyDelete(new File(PARTS_FILE_NAME_PREFIX))
-    FileUtil.fullyDelete(new File(RESULT_FILE_NAME))
-
-    sc.parallelize(map).saveAsTextFile(PARTS_FILE_NAME_PREFIX)
-    merge(PARTS_FILE_NAME_PREFIX, RESULT_FILE_NAME)
+    map
   }
 
   def merge(srcPath: String, dstPath: String): Unit =  {
