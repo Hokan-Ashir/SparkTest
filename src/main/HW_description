@@ -1,0 +1,5 @@
+1.	Use dataset (web-server access log)
+2.	Count average bytes per request by IP and total bytes by IP; sort output by total amount of bytes; output is top-5 in console(make #1 screenshot) and other output is CSV file with rows as next:
+IP,175.5,109854
+3.	Add Spark Unit tests for your Job (and make #2 screenshot with ‘green’ tests)
+4.	Use accumulators to get stats how many users of IE, Mozzila or Other were detected (parse it from UserAgent: ip13 - - [24/Apr/2011:04:41:53 -0400] "GET /logs/access_log.3 HTTP/1.1" 200 4846545 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)") and print them in STDOUT of Driver (make #3 screenshot)
