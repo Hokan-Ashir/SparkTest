@@ -5,7 +5,9 @@ import java.io.File
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, FileUtil, Path}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.{Accumulator, SparkConf, SparkContext}
+
+import scala.collection.immutable.HashMap
 
 object Main {
 
@@ -15,21 +17,33 @@ object Main {
   val REGEX_PATTERN = "(ip\\d+)\\s-\\s-\\s\\[.*\\]\\s\".*\"\\s\\d+\\s(\\d+)?.*".r
   val PARTS_FILE_NAME_PREFIX: String = "temp"
   val RESULT_FILE_NAME: String = "result.csv"
+  val userAgentParser : UserAgentParser = new UserAgentParser
+  var accumulators : Map[BrowserTypes.BrowserTypes, Accumulator[Int]] = null
 
   def main(args: Array[String]) {
-    val (sc: SparkContext, cache: RDD[(String, Long)]) = extractIPAndBytesAmount
+    val (sc : SparkContext, cache: RDD[(String, Long)]) = extractIPAndBytesAmount
     val map: Array[String] = countAverageByteNumberValues(cache)
     map.foreach(println)
+    accumulators.foreach(println)
     saveResultToFile(sc, map)
   }
 
   def extractIPAndBytesAmount: (SparkContext, RDD[(String, Long)]) = {
-    val conf = new SparkConf().setAppName(APPLICATION_NAME)
+    val conf = new SparkConf().setMaster("local[*]").setAppName(APPLICATION_NAME)
     val sc = new SparkContext(conf)
+    accumulators = HashMap(
+      (BrowserTypes.IE, sc.accumulator(0)),
+      (BrowserTypes.MOZILLA, sc.accumulator(0)),
+      (BrowserTypes.OTHER, sc.accumulator(0))
+    )
+
     val cache = sc.textFile(FILE_PATH + FILE_NAME, 1).map(line => {
       val REGEX_PATTERN(ip, size) = line
+      val accumulator: Accumulator[Int] = accumulators(userAgentParser.getBrowserType(line))
+      accumulator += 1
       (ip, if (size != null) size.toLong else 0)
     })
+
     (sc, cache)
   }
 
