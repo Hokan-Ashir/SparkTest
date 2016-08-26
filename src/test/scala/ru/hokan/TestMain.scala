@@ -14,7 +14,7 @@ class TestMain extends FlatSpec with GivenWhenThen with Matchers {
     val rdd: RDD[(String, Long)] = sc.parallelize(values)
 
     When("count ip average data")
-    val result = Main.countAverageByteNumberValues(rdd)
+    val result = HW1.countAverageByteNumberValues(rdd)
 
     Then("average data counted")
     result should equal (Array("ip1, 15.0, 30.0"))
@@ -28,7 +28,7 @@ class TestMain extends FlatSpec with GivenWhenThen with Matchers {
     val rdd: RDD[(String, Long)] = sc.parallelize(values)
 
     When("count ip average data")
-    val result = Main.countAverageByteNumberValues(rdd)
+    val result = HW1.countAverageByteNumberValues(rdd)
 
     Then("average data counted")
     result should equal (Array("ip2, 20.0, 20.0", "ip1, 10.0, 10.0"))
@@ -42,7 +42,7 @@ class TestMain extends FlatSpec with GivenWhenThen with Matchers {
     val rdd: RDD[(String, Long)] = sc.parallelize(values)
 
     When("count ip average data")
-    val result = Main.countAverageByteNumberValues(rdd)
+    val result = HW1.countAverageByteNumberValues(rdd)
 
     Then("average data counted")
     result should equal (Array("ip2, 30.0, 60.0", "ip1, 20.0, 40.0"))
@@ -56,7 +56,7 @@ class TestMain extends FlatSpec with GivenWhenThen with Matchers {
     val rdd: RDD[(String, Long)] = sc.parallelize(values)
 
     When("count ip average data")
-    val result = Main.countAverageByteNumberValues(rdd)
+    val result = HW1.countAverageByteNumberValues(rdd)
 
     Then("average data counted")
     result should not equal Array("ip1")
@@ -70,7 +70,7 @@ class TestMain extends FlatSpec with GivenWhenThen with Matchers {
     val rdd: RDD[(String, Long)] = sc.parallelize(values)
 
     When("count ip average data")
-    val result = Main.countAverageByteNumberValues(rdd)
+    val result = HW1.countAverageByteNumberValues(rdd)
 
     Then("average data counted")
     result should not equal Array("ip1, 10.0, 10.0", "ip2, 20.0, 20.0")

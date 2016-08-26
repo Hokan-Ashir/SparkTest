@@ -9,11 +9,11 @@ import org.apache.spark.{Accumulator, SparkConf, SparkContext}
 
 import scala.collection.immutable.HashMap
 
-object Main {
+object HW1 {
 
   val FILE_PATH = "hdfs:///user/maria_dev/"
   val FILE_NAME = "000000"
-  val APPLICATION_NAME: String = "Simple Application"
+  val APPLICATION_NAME: String = "HW1 Application"
   val REGEX_PATTERN = "(ip\\d+)\\s-\\s-\\s\\[.*\\]\\s\".*\"\\s\\d+\\s(\\d+)?.*".r
   val PARTS_FILE_NAME_PREFIX: String = "temp"
   val RESULT_FILE_NAME: String = "result.csv"
