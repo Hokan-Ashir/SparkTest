@@ -1,0 +1,6 @@
+1.	Use dataset http://stat-computing.org/dataexpo/2009/the-data.html (year 2007 + dimensions http://stat-computing.org/dataexpo/2009/supplemental-data.html only Airports and Carrier Codes).
+2.	Load data to dataframes (make #1 screenshot with samples from dataframe(s))
+3.	Count total number of flights per carrier in 2007 (make #2 screenshot)
+4.	The total number of flights served in Jun 2007 by NYC (all airports, use join with Airports data and don’t forget make screenshot #3
+5.	Find five most busy airports in US during Jun 01 - Aug 31 (make #4).
+6.	Find the carrier who served the biggest number of flights (make #5)

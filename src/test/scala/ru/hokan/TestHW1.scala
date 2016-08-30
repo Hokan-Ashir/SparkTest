@@ -4,7 +4,7 @@ import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.rdd.RDD
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 
-class TestMain extends FlatSpec with GivenWhenThen with Matchers {
+class TestHW1 extends FlatSpec with GivenWhenThen with Matchers {
 
   "Average data from same ips" should "be computed" in {
     Given("one ip")
