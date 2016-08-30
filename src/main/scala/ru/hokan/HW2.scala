@@ -27,10 +27,17 @@ object HW2 {
     val airportsTable: DataFrame = context.table(DATABASE_NAME + ACCESS_DELIMITER + AIRPORTS_TABLE_NAME)
 //    airportsTable.show()
 
-    executeQuery1(carriersTable, dataTable)
-    executeQuery2(dataTable, airportsTable)
-    executeQuery3(dataTable, airportsTable)
-    executeQuery4(carriersTable, dataTable)
+    val query1DF: DataFrame = executeQuery1(carriersTable, dataTable)
+    query1DF.show()
+
+    val query2DF: DataFrame = executeQuery2(dataTable, airportsTable)
+    query2DF.show()
+
+    val query3DF: DataFrame = executeQuery3(dataTable, airportsTable)
+    query3DF.show()
+
+    val query4DF: DataFrame = executeQuery4(carriersTable, dataTable)
+    query4DF.show()
   }
 
   //  --Count total number of flights per carrier in 2007
@@ -39,10 +46,9 @@ object HW2 {
   //  join
   //  carriers
   //  on result.UniqueCarrier = carriers.code;
-  def executeQuery1(carriersTable: DataFrame, dataTable: DataFrame): Unit = {
+  def executeQuery1(carriersTable: DataFrame, dataTable: DataFrame): DataFrame = {
     getGroupedUniqueCarriersCount(dataTable)
       .join(carriersTable, dataTable("UniqueCarrier") === carriersTable("code")).select("cnt", "code", "description")
-      .show()
   }
 
   //  --The total number of flights served in Jun 2007 by NYC (all airports, use join with Airports data)
@@ -53,10 +59,10 @@ object HW2 {
   //  select * from data JOIN airports on (data.Dest = airports.iata)
   //  where data.Month = 6 and airports.city = 'New York'
   //  ) as result;
-  def executeQuery2(dataTable: DataFrame, airportsTable: DataFrame): Unit = {
+  def executeQuery2(dataTable: DataFrame, airportsTable: DataFrame): DataFrame = {
     dataTable.join(airportsTable, dataTable("Origin") === airportsTable("iata")).where("Month = 6 and city = 'New York'")
     .unionAll(dataTable.join(airportsTable, dataTable("Dest") === airportsTable("iata")).where("Month = 6 and city = 'New York'"))
-      .agg(count("*").alias("cnt")).select("cnt").show()
+      .agg(count("*").alias("cnt")).select("cnt")
   }
 
   //  --Find five most busy airports in US during Jun 01 - Aug 31
@@ -71,11 +77,11 @@ object HW2 {
   //  group by result.iata
   //  order by cnt desc limit 5;
 
-  def executeQuery3(dataTable: DataFrame, airportsTable: DataFrame): Unit = {
+  def executeQuery3(dataTable: DataFrame, airportsTable: DataFrame): DataFrame = {
     dataTable.join(airportsTable, dataTable("Origin") === airportsTable("iata")).where("Month >= 6 and Month <= 8")
       .unionAll(dataTable.join(airportsTable, dataTable("Dest") === airportsTable("iata")).where("Month >= 6 and Month <= 8")).
       groupBy("iata").agg(count("*").alias("cnt")).orderBy(desc("cnt")).limit(5)
-        .select("cnt", "iata").show()
+        .select("cnt", "iata")
   }
 
   //  --Find the carrier who served the biggest number of flights
@@ -84,10 +90,9 @@ object HW2 {
   //    join
   //  carriers
   //  on result.UniqueCarrier = carriers.code;
-  def executeQuery4(carriersTable: DataFrame, dataTable: DataFrame): Unit = {
+  def executeQuery4(carriersTable: DataFrame, dataTable: DataFrame): DataFrame = {
     getGroupedUniqueCarriersCount(dataTable).limit(1)
       .join(carriersTable, dataTable("UniqueCarrier") === carriersTable("code")).select("cnt", "code", "description")
-      .show()
   }
 
   def getGroupedUniqueCarriersCount(dataTable: DataFrame): DataFrame = {
