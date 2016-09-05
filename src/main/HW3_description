@@ -1,0 +1,18 @@
+Task:  
+Find out who of the customers is likely to respond the offer about a new service
+Detailed Description:
+From time to time the bank launches new services. One of the ways of increasing customer relationship efficiency is careful selection of the people who are likely to respond an offer. Offering a service can be done by e-mail, phone call or any other way. 
+If the bank tries to contacts all of the customers, it will be a waste of time of the banking personnel and it might annoy a lot of customers about getting “spam” messages/calls. So, this is not an option.
+Therefore, you need to develop an algorithm that will output a probability (a number from 0 to 1) that a customer will respond an offer about a new service.  It should be a supervised learning algorithm based on the training data which is described below. 
+Input data: 
+•	PropertyDesciptionEN.txt – the description of the dataset  (50 + 1 column)
+•	Objects.csv -  input variables dataset  (50 columns)
+•	Target.csv – output variable (1 column with meaning “1=yes” or “0=no” – did the customer respond on an offer or not).
+Measurements: 
+Your solution should output AUC ROC (area under curve) value.   
+We do not demand that you draw the ROC chart, however, if you do this, it will be a plus.
+Tools:  
+You may develop the application on Scala or Python or any programming language WHICH IS SUPPORTED BY SPARK.  MLLib library should be used.  You may choose any type of the model. 
+Note: tools and libraries which have no relationship to MLLib (like using RapidMiner, pure R without MLLib, Weka or others) are NOT accepted as a solution.
+Deliverables:
+We are expecting to get from you a source code on the programming language of your choice that builds a model and calculates the AUC ROC metrics. Also, you should provide simple report in free form with description of your experiment, stages, advantages/disadvantages of used algorithms and the contribution of each team member.

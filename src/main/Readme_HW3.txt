@@ -9,6 +9,6 @@ sbt package
 this will build "sparktest_2.10-1.0.jar" in PROJECT/target/scala-2.10
 
 To run this project, i.e. on HDP, just use this command:
-spark-submit --class "ru.hokan.HW2" /opt/sparktest_2.10-1.0.jar
+spark-submit --class "ru.hokan.HW3" /opt/sparktest_2.10-1.0.jar
 
 specifying main class and path to jar (and jar itself) which should be run

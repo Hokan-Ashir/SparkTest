@@ -9,6 +9,7 @@ libraryDependencies +=  "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 libraryDependencies += "eu.bitwalker" % "UserAgentUtils" % "1.14"
 libraryDependencies += "org.apache.spark" % "spark-sql_2.10" % "1.6.0"
 libraryDependencies += "org.apache.spark" % "spark-hive_2.10" % "1.6.0"
+libraryDependencies += "org.apache.spark" % "spark-mllib_2.10" % "1.6.0"
 
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
