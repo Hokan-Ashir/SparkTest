@@ -1,6 +1,6 @@
 package ru.hokan
 
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 import ru.hokan.pipelines.MLPipeline

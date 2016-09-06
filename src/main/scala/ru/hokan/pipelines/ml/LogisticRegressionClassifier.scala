@@ -1,86 +1,56 @@
 package ru.hokan.pipelines.ml
 
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.ml.Pipeline
-import org.apache.spark.ml.classification.LogisticRegression
-import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
-import org.apache.spark.ml.feature.{HashingTF, OneHotEncoder, StringIndexer, Tokenizer}
-import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
-import org.apache.spark.sql.Row
-import org.apache.spark.util.Vector
+import org.apache.spark.ml.classification.{LogisticRegression, LogisticRegressionModel}
+import org.apache.spark.ml.{Pipeline, PipelineStage}
+import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
+import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.sql.{DataFrame, Row}
 
 object LogisticRegressionClassifier {
-  def classify(trainingData: DataFrame, testData : DataFrame) : Unit = {
 
-    // Configure an ML pipeline, which consists of three stages: tokenizer, hashingTF, and lr.
-//    val tokenizer = new Tokenizer()
-//      .setInputCol("text")
-//      .setOutputCol("words")
-//    val hashingTF = new HashingTF()
-//      .setInputCol(tokenizer.getOutputCol)
-//      .setOutputCol("features")
-    val lr = new LogisticRegression()
-      .setMaxIter(10)
-    val pipeline = new Pipeline()
-//      .setStages(Array(tokenizer, hashingTF, lr))
-      .setStages(Array(lr))
+  val INDEXED_RESULT_COLUMN_NAME = MLDataPreparator.RESULT_COLUMN + "_" + "indexed"
 
-//    val indexer = new StringIndexer()
-//      .setInputCol("family_income")
-//      .setOutputCol("family_income_Index")
-//      .fit(trainingData)
-//    val indexed = indexer.transform(trainingData)
-//
-//    val encoder = new OneHotEncoder()
-//      .setInputCol("family_income_Index")
-//      .setOutputCol("family_income_Vector")
-//    val transform: DataFrame = encoder.transform(indexed)
+  def classify(trainingData: DataFrame, testData : DataFrame): Unit = {
+    // Set up Pipeline.
+    val stages = new scala.collection.mutable.ArrayBuffer[PipelineStage]()
 
-    // We use a ParamGridBuilder to construct a grid of parameters to search over.
-    // With 3 values for hashingTF.numFeatures and 2 values for lr.regParam,
-    // this grid will have 3 x 2 = 6 parameter settings for CrossValidator to choose from.
-    val paramGrid = new ParamGridBuilder()
-//      .addGrid(hashingTF.numFeatures, Array(10, 100, 1000))
-      .addGrid(lr.regParam, Array(0.1, 0.01))
-      .build()
+//    val labelIndexer = new StringIndexer()
+//      .setInputCol(MLDataPreparator.RESULT_COLUMN)
+//      .setOutputCol(INDEXED_RESULT_COLUMN_NAME)
+//    stages += labelIndexer
 
-    // We now treat the Pipeline as an Estimator, wrapping it in a CrossValidator instance.
-    // This will allow us to jointly choose parameters for all Pipeline stages.
-    // A CrossValidator requires an Estimator, a set of Estimator ParamMaps, and an Evaluator.
-    // Note that the evaluator here is a BinaryClassificationEvaluator and its default metric
-    // is areaUnderROC.
-    val cv = new CrossValidator()
-      .setEstimator(pipeline)
-      .setEvaluator(new BinaryClassificationEvaluator)
-      .setEstimatorParamMaps(paramGrid)
-      .setNumFolds(2)  // Use 3+ in practice
+    val lor = new LogisticRegression()
+      .setFeaturesCol(MLDataPreparator.FEATURES_COLUMN)
+      .setLabelCol(MLDataPreparator.RESULT_COLUMN)
+//      .setRegParam(params.regParam) // def: 0.0
+//      .setElasticNetParam(params.elasticNetParam) // def 0.0
+      .setMaxIter(100)
+//      .setTol(params.tol) // 1E-6
+//      .setFitIntercept(params.fitIntercept)
 
-    // Run cross-validation, and choose the best set of parameters.
-    val cvModel = cv.fit(trainingData)
-//    cvModel.getEvaluator.asInstanceOf[BinaryClassificationEvaluator].
+    stages += lor
+    val pipeline = new Pipeline().setStages(stages.toArray)
 
-    // Make predictions on test documents. cvModel uses the best model found (lrModel).
-//    cvModel.transform(testData)
-//      .select("id", "text", "probability", "prediction")
-//      .collect()
-//      .foreach { case Row(id: Long, text: String, prob: Vector, prediction: Double) =>
-//        println(s"($id, $text) --> prob=$prob, prediction=$prediction")
-//      }
+    // Fit the Pipeline.
+    val startTime = System.nanoTime()
+    val pipelineModel = pipeline.fit(trainingData)
+    val elapsedTime = (System.nanoTime() - startTime) / 1e9
+    println(s"Training time: $elapsedTime seconds")
 
-//    val trainingSummary = cv.me
-//
-//    // Obtain the objective per iteration.
-//    val objectiveHistory = trainingSummary.objectiveHistory
-//    objectiveHistory.foreach(loss => println(loss))
-//
-//    // Obtain the metrics useful to judge performance on test data.
-//    // We cast the summary to a BinaryLogisticRegressionSummary since the problem is a
-//    // binary classification problem.
-//    val binarySummary = trainingSummary.asInstanceOf[BinaryLogisticRegressionSummary]
-//
-//    // Obtain the receiver-operating characteristic as a dataframe and areaUnderROC.
-//    val roc = binarySummary.roc
-//    roc.show()
-//    println(binarySummary.areaUnderROC)
+    val lorModel = pipelineModel.stages.last.asInstanceOf[LogisticRegressionModel]
+    // Print the weights and intercept for logistic regression.
+    println(s"Weights: ${lorModel.coefficients} Intercept: ${lorModel.intercept}")
+
+    val fullPredictions = pipelineModel.transform(testData).cache()
+    //given input columns prediction, probability, result, features, rawPrediction;
+    fullPredictions.select(MLDataPreparator.RESULT_COLUMN, "probability", "rawPrediction", "prediction").show(false)
+
+    val scoreAndLabels = fullPredictions.select("rawPrediction", MLDataPreparator.RESULT_COLUMN)
+      .map { case Row(rawPrediction: Vector, label: Double) =>
+        (rawPrediction(1), label)
+      }
+
+    val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+    println(s"Area under ROC vie BCM = ${metrics.areaUnderROC()}")
   }
 }
