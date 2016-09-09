@@ -5,7 +5,7 @@ USE spark_homework3;
 DROP Table Target_TEMPORARY;
 
 CREATE TEMPORARY TABLE Target_TEMPORARY (
-  result DOUBLE
+  label DOUBLE
 ) stored as textfile;
 
 LOAD DATA INPATH '/user/maria_dev/Target.csv' OVERWRITE INTO TABLE Target_TEMPORARY;

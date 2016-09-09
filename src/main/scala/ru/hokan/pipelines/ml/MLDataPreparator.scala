@@ -5,13 +5,15 @@ import org.apache.spark.sql.DataFrame
 
 object MLDataPreparator {
   val FEATURES_COLUMN = "features"
-  val RESULT_COLUMN = "result"
+  val RESULT_COLUMN = "label"
   val ROW_NUMBER = "row_num"
-  val CATEGORY_FEATURES = Array("is_employed", "is_retired", "sex", "education", "marital_status",
+  val CATEGORY_FEATURES = Array[String](
+    "is_employed", "is_retired", "sex", "education", "marital_status",
     "branch_of_employment",
     "position_in_company", "company_ownership", "relationship_to_foreign_capital",
   "direction_of_activity_inside_company", "family_income", "city_of_registration", "city_of_living",
-    "postal_address_of_city", "city_of_branch_loan_was_taken", "state")
+    "postal_address_of_city", "city_of_branch_loan_was_taken", "state"
+  )
   val RESULT_COLUMNS = Array(RESULT_COLUMN, FEATURES_COLUMN)
   val NON_FEATURES_COLUMNS = Array(ROW_NUMBER, RESULT_COLUMN)
 
@@ -56,6 +58,11 @@ object MLDataPreparator {
   }
 
   def transformCategoricalFeature(dataFrame: DataFrame, name : String) : DataFrame = {
+    val contains: Boolean = dataFrame.schema.map(field => field.name).contains(name)
+    if (!contains) {
+      return dataFrame
+    }
+
     val encoder = new OneHotEncoder()
       .setInputCol(name)
       .setOutputCol(name + "_vectored")

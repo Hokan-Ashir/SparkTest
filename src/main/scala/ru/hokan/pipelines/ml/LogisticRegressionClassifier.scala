@@ -1,6 +1,8 @@
 package ru.hokan.pipelines.ml
 
 import org.apache.spark.ml.classification.{LogisticRegression, LogisticRegressionModel}
+import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
+import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.ml.{Pipeline, PipelineStage}
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.mllib.linalg.Vector
@@ -22,28 +24,41 @@ object LogisticRegressionClassifier {
     val lor = new LogisticRegression()
       .setFeaturesCol(MLDataPreparator.FEATURES_COLUMN)
       .setLabelCol(MLDataPreparator.RESULT_COLUMN)
-//      .setRegParam(params.regParam) // def: 0.0
-//      .setElasticNetParam(params.elasticNetParam) // def 0.0
       .setMaxIter(100)
-//      .setTol(params.tol) // 1E-6
-//      .setFitIntercept(params.fitIntercept)
 
     stages += lor
     val pipeline = new Pipeline().setStages(stages.toArray)
 
+    val paramGrid = new ParamGridBuilder()
+//      .addGrid(lor.regParam, Array(0.1, 0.01))
+//      .addGrid(lor.maxIter, Array(10, 100, 1000))
+//        .addGrid(lor.elasticNetParam, Array(0.1, 0.01))
+//        .addGrid(lor.tol, Array(0.1, 0.01, 0.001, 0.0001, 0.00001))
+        .addGrid(lor.standardization, Array(x = false))
+      .build()
+
+    val cv = new CrossValidator()
+      .setEstimator(pipeline)
+      .setEvaluator(new BinaryClassificationEvaluator)
+      .setEstimatorParamMaps(paramGrid)
+      .setNumFolds(4)  // Use 3+ in practice
+
     // Fit the Pipeline.
     val startTime = System.nanoTime()
-    val pipelineModel = pipeline.fit(trainingData)
+    val pipelineModel = cv.fit(trainingData)
     val elapsedTime = (System.nanoTime() - startTime) / 1e9
     println(s"Training time: $elapsedTime seconds")
 
-    val lorModel = pipelineModel.stages.last.asInstanceOf[LogisticRegressionModel]
+//    val lorModel = pipelineModel.stages.last.asInstanceOf[LogisticRegressionModel]
     // Print the weights and intercept for logistic regression.
-    println(s"Weights: ${lorModel.coefficients} Intercept: ${lorModel.intercept}")
+//    println(s"Weights: ${lorModel.coefficients} Intercept: ${lorModel.intercept}")
 
     val fullPredictions = pipelineModel.transform(testData).cache()
+    fullPredictions.printSchema()
     //given input columns prediction, probability, result, features, rawPrediction;
-    fullPredictions.select(MLDataPreparator.RESULT_COLUMN, "probability", "rawPrediction", "prediction").show(false)
+    val selectResult: DataFrame = fullPredictions.select(MLDataPreparator.RESULT_COLUMN, "probability", "rawPrediction", "prediction")
+    selectResult.show(false)
+    selectResult.rdd.saveAsTextFile("/opt/result.txt")
 
     val scoreAndLabels = fullPredictions.select("rawPrediction", MLDataPreparator.RESULT_COLUMN)
       .map { case Row(rawPrediction: Vector, label: Double) =>
