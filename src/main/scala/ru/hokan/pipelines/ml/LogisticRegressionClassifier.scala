@@ -65,7 +65,9 @@ object LogisticRegressionClassifier {
         (rawPrediction(1), label)
       }
 
-    val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+    val metrics = new BinaryClassificationMetrics(scoreAndLabels, 250)
     println(s"Area under ROC vie BCM = ${metrics.areaUnderROC()}")
+
+    metrics.roc().saveAsTextFile("/opt/roc.txt")
   }
 }
